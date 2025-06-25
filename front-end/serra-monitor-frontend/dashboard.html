@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard TerraVerde</title>
+    <style>
+        /* Stili Generali e Body */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            background-color: #f0f4f0; /* Sfondo leggermente verde chiaro */
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column; /* Organizza gli elementi in colonna */
+        }
+
+        /* Header Fisso */
+        header {
+            background-color: #4CAF50; /* Verde principale */
+            color: white;
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            position: sticky; /* Rende l'header fisso quando si scorre */
+            top: 0;
+            z-index: 1000; /* Assicura che sia sopra tutto il resto */
+        }
+
+        .header-left, .header-right {
+            position: relative; /* Per i menu a tendina */
+        }
+
+        .header-title {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+
+        /* Pulsanti nell'Header */
+        .header-button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.8em; /* Dimensione per menu e + */
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 5px;
+            transition: background-color 0.2s ease;
+        }
+
+        .header-button:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Icona Foglia (simulata con testo/emoji) */
+        .leaf-icon {
+            font-size: 1.5em; /* Dimensione per la foglia */
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+
+        /* Dropdown Menu */
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 8px;
+            overflow: hidden;
+            right: 0; /* Allinea il dropdown a destra del pulsante + */
+            left: auto; /* Annulla left per il menu principale */
+        }
+        /* Per il menu a sinistra, allinea a sinistra */
+        .header-left .dropdown-content {
+            left: 0;
+            right: auto;
+        }
+
+
+        .dropdown-content button {
+            color: #333;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            background-color: #f9f9f9;
+            border: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.2s ease;
+        }
+
+        .dropdown-content button:hover {
+            background-color: #e6ffe6; /* Verde chiaro per hover */
+        }
+
+        /* Mostra il dropdown quando è attivo */
+        .dropdown-show {
+            display: block;
+        }
+
+        /* Contenuto Principale della Dashboard */
+        main {
+            flex-grow: 1; /* Prende tutto lo spazio disponibile */
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .welcome-message {
+            font-size: 2.5em;
+            color: #2e7d32;
+            margin-bottom: 40px;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .dashboard-card-container {
+            display: flex;
+            gap: 30px; /* Spazio tra le card */
+            flex-wrap: wrap; /* Per andare a capo su schermi piccoli */
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .dashboard-card {
+            background-color: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            min-width: 250px;
+            flex: 1; /* Permette alle card di espandarsi */
+            cursor: pointer; /* Indica che è cliccabile */
+            transition: transform 0.2s ease; /* Effetto hover */
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px); /* Solleva la card all'hover */
+        }
+
+
+        .dashboard-card h3 {
+            color: #4CAF50;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+
+        .dashboard-card p {
+            font-size: 1.2em;
+            color: #555;
+            margin-bottom: 15px;
+        }
+
+        .dashboard-card strong {
+            font-size: 1.8em;
+            color: #2e7d32;
+            display: block; /* Va a capo per risaltare */
+            margin-top: 10px;
+        }
+
+        .grafana-container { /* Nuovo stile per l'iframe di Grafana */
+            width: 100%;
+            max-width: 900px; /* Limita la larghezza dell'iframe */
+            margin: 30px auto;
+            border-radius: 12px;
+            overflow: hidden; /* Nasconde gli angoli dell'iframe se arrotondati */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .grafana-container iframe {
+            display: block; /* Rimuove lo spazio extra sotto l'iframe */
+        }
+
+        /* Stili per il popup modale (simulato) */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Sfondo semi-trasparente */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000; /* Sopra tutto */
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            width: 350px;
+            text-align: center;
+        }
+        .modal-content h3 {
+            color: #2e7d32;
+            margin-bottom: 20px;
+            font-size: 1.6em;
+        }
+        .modal-content button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-size: 1em;
+        }
+        .modal-content button:hover {
+            background-color: #43A047;
+        }
+        
+    </style>
+</head>
+<body>
+
+    <div id="app">
+        <header>
+            <div class="header-left">
+                <button class="header-button" @click="toggleDropdown('main')">
+                    <span class="leaf-icon">🌱</span>
+                </button>
+                <div class="dropdown-content" :class="{'dropdown-show': showMainDropdown}">
+                    <button @click="profileClick">Profilo</button>
+                    <button @click="logout">Esci</button>
+                </div>
+            </div>
+
+            <div class="header-title">
+                TerraVerde
+            </div>
+
+            <div class="header-right">
+                <button class="header-button" @click="contactUs">Contattaci</button>
+
+                <button class="header-button" @click="toggleDropdown('add')">
+                    ☰
+                </button>
+                </button>
+                <div class="dropdown-content" :class="{'dropdown-show': showAddDropdown}">
+                    <button v-if="user.role === 'admin'"  @click="addSensor">Aggiungi Sensore</button>
+                    <button v-if="user.role === 'admin'" @click="deleteSensor">Elimina Sensore</button>
+                    <button @click="viewWeather">Meteo</button>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <h1 class="welcome-message">Benvenuto nella tua serra, {{ user.username }}!</h1>
+
+            <div class="grafana-container">
+                <iframe src="https://snapshots.raintank.io/dashboard/snapshot/ajUqUq6G0mq0IaxiAjaqShylFcqkkxGy" width="100%" height="500" frameborder="0"></iframe>
+            </div>
+
+            <div class="dashboard-card-container">
+                <div class="dashboard-card" @click="viewTemperatureDetails">
+                    <h3>Visualizza dati temperatura e umidità</h3>
+                    <strong>{{ averageTemperature.toFixed(1) }} °C</strong>
+                </div>
+                </div>
+
+                <footer>
+                    <p>&copy; 2025 La Mia Applicazione. Tutti i diritti riservati.</p>
+                </footer>
+        </main>
+
+        <div class="modal-overlay" v-if="showWelcomeModal">
+            <div class="modal-content">
+                <h3>Bentornato, {{ user.username }}!</h3>
+                <p>È bello rivederti nella tua serra digitale.</p>
+                <button @click="closeWelcomeModal">Inizia a gestire</button>
+            </div>
+        </div>
+
+        </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"></script>
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    user: {},
+                    showMainDropdown: false, 
+                    showAddDropdown: false,  
+                    showWelcomeModal: true, 
+
+                    sensorReadings: {
+                        temperature: [22.5, 23.1, 22.8, 23.5, 22.9, 23.0],
+                        humidity: [60.2, 61.5, 60.8, 62.1, 61.0, 60.5]
+                    },
+
+                    showAddSensorModal: false,
+                    showWeatherModal: false,
+                };
+            },
+            
+            computed: {
+                averageTemperature() {
+                    const sum = this.sensorReadings.temperature.reduce((acc, val) => acc + val, 0);
+                    return this.sensorReadings.temperature.length > 0 ? sum / this.sensorReadings.temperature.length : 0;
+                },
+                averageHumidity() {
+                    const sum = this.sensorReadings.humidity.reduce((acc, val) => acc + val, 0);
+                    return this.sensorReadings.humidity.length > 0 ? sum / this.sensorReadings.humidity.length : 0;
+                }
+            },
+            methods: {
+               
+                loadLoggedUser() {
+                    if(localStorage.getItem('loggedInUser') && localStorage.getItem('role')){
+                        this.user = {
+                            username: localStorage.getItem('loggedInUser'),
+                            role: localStorage.getItem('role')
+                        };
+                    }
+
+                    if (localStorage.getItem('loggedInUser') === 'Ospite') {
+                        window.location.href = 'login.html';
+                    }
+                },
+                
+                toggleDropdown(type) {
+                    if (type === 'main') {
+                        this.showMainDropdown = !this.showMainDropdown;
+                        this.showAddDropdown = false; 
+                    } else if (type === 'add') {
+                        this.showAddDropdown = !this.showAddDropdown;
+                        this.showMainDropdown = false; 
+                    }
+                },
+                
+                closeAllDropdowns(event) {
+                   
+                    const headerButtons = event.target.closest('.header-button');
+                    const dropdownContents = event.target.closest('.dropdown-content');
+                    const modalContents = event.target.closest('.modal-overlay'); 
+
+                    if (!headerButtons && !dropdownContents) {
+                        this.showMainDropdown = false;
+                        this.showAddDropdown = false;
+                    }
+                    
+                },
+              
+                profileClick() {
+                    this.toggleDropdown('main'); 
+                    window.location.href = 'profilo.html';
+                },
+                logout() {
+                    this.toggleDropdown('main');
+                    if (confirm('Sei sicuro di voler uscire?')) {
+                        localStorage.removeItem('loggedInUser');
+                        window.location.href = 'login.html';
+                    }
+                },
+                addSensor() {
+                    this.toggleDropdown('add'); 
+                    window.location.href = 'sensors.html'; 
+                },
+                viewWeather() {
+                    this.toggleDropdown('add'); 
+                    window.location.href = 'weather.html'; 
+                },
+
+               
+                closeWelcomeModal() {
+                    this.showWelcomeModal = false;
+                },
+                closeAddSensorModal() { 
+                    this.showAddSensorModal = false;
+                },
+                closeWeatherModal() { 
+                    this.showWeatherModal = false;
+                },
+               
+                viewTemperatureDetails() {
+                    window.location.href = 'dettagli-sensori.html?type=temperature';
+                },
+                viewHumidityDetails() {
+                    window.location.href = 'dettagli-sensori.html?type=humidity';
+                },
+                contactUs() {
+                    alert('Per assistenza, scrivi a info@terraverde.com o chiamaci al numero +39 0123 456789.');
+            }
+            },
+            mounted() {
+                
+                this.loadLoggedUser();
+             
+                document.addEventListener('click', this.closeAllDropdowns);
+            },
+            beforeUnmount() {
+               
+                document.removeEventListener('click', this.closeAllDropdowns);
+            },
+           
+        }).mount('#app');
+    </script>
+
+</body>
+</html>
