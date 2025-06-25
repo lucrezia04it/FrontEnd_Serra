@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dettagli Sensori</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            background-color: #f0f4f0;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        .header-title {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: white;
+        }
+        main {
+            flex-grow: 1;
+            padding: 30px;
+            max-width: 960px;
+            margin: 20px auto;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #2e7d32;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .back-button {
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            margin-bottom: 20px;
+            transition: background-color 0.2s ease;
+        }
+        .back-button:hover {
+            background-color: #0056b3;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            color: #333;
+        }
+        .grafana-embed {
+            width: 100%;
+            height: 600px;
+            border: none;
+            border-radius: 8px;
+            margin-top: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .loading {
+            text-align: center;
+            font-size: 1.5em;
+            color: #555;
+            margin-top: 50px;
+        }
+        .error-message {
+            color: #d32f2f;
+            background-color: #ffebee;
+            border: 1px solid #ef9a9a;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="app-details">
+        <header>
+            <div class="header-title">Dettagli Sensore: {{ sensorTypeDisplay }}</div>
+        </header>
+
+        <main>
+            <a href="dashboard.html" class="back-button">← Torna alla Dashboard</a>
+
+            <h1>Dati Dettagliati {{ sensorTypeDisplay }}</h1>
+
+            <h3>Tabella Dati</h3>
+            <p v-if="loading" class="loading">Caricamento dati...</p>
+            <p v-if="error" class="error-message">Errore nel caricamento dei dati: {{ error }}</p>
+
+            <table v-if="!loading && !error && allSensorData.length > 0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Temperatura (°C)</th>
+                        <th>Umidità (%)</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="sensorData in allSensorData" :key="sensorData.id">
+                        <td>{{ sensorData.id }}</td>
+                        <td>{{ sensorData.temperatura }}</td>
+                        <td>{{ sensorData.umidita }}</td>
+                        <td>{{ sensorData.timestamp }}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p v-else-if="!loading && !error && allSensorData.length === 0">Nessun dato disponibile.</p>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    sensorType: '',
+                    allSensorData: [],
+                    loading: true,
+                    error: null,
+                    pollingInterval: null, 
+                };
+            },
+            computed: {
+                sensorTypeDisplay() {
+                    return this.sensorType === 'temperature' ? 'Temperatura' :
+                           this.sensorType === 'humidity' ? 'Umidità' : 'Generale';
+                }
+            },
+            methods: {
+                parseUrlParams() {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    this.sensorType = urlParams.get('type') || '';
+                },
+                async fetchSensorData() { 
+                    this.loading = true;
+                    this.error = null;
+                    
+                    let apiUrl = 'http://localhost:8080/api/sensor_readings';
+
+                    try {
+                       
+                        const response = await axios.get(apiUrl);
+                        console.log(response.data);
+                        this.allSensorData = response.data; 
+                    } catch (e) {
+                        console.error("Errore nel recupero dei dati del sensore:", e);
+                        if (e.response) {
+                            this.error = `Errore dal server: ${e.response.status} - ${e.response.statusText || e.message}. Dettagli: ${JSON.stringify(e.response.data)}`;
+                        } else if (e.request) {
+                          
+                            this.error = "Nessuna risposta dal server. Controlla la connessione o l'indirizzo del backend.";
+                        } else {
+                          
+                            this.error = `Errore durante la richiesta: ${e.message}`;
+                        }
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                
+                startPolling() {
+                    
+                    if (this.pollingInterval) {
+                        clearInterval(this.pollingInterval);
+                    }
+                   
+                    this.pollingInterval = setInterval(this.fetchSensorData, 5000000); 
+                    console.log("Polling avviato.");
+                },
+                stopPolling() {
+                   
+                    if (this.pollingInterval) {
+                        clearInterval(this.pollingInterval);
+                        this.pollingInterval = null;
+                        console.log("Polling fermato.");
+                    }
+                }
+            },
+            created() {
+                
+                this.parseUrlParams();    
+                this.fetchSensorData();   
+           
+            },
+            beforeUnmount() { 
+             
+                this.stopPolling();
+            }
+            
+        }).mount('#app-details');
+    </script>
+</body>
+</html>

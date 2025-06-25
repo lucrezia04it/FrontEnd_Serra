@@ -1,0 +1,110 @@
+[
+    {
+        "umidita": 60.2,
+        "id": 1,
+        "temperatura": 22.5,
+        "timestamp": "2025-06-22 10:55:59.246"
+    },
+    {
+        "umidita": 59.8,
+        "id": 2,
+        "temperatura": 23.1,
+        "timestamp": "2025-06-22 10:56:04.271"
+    },
+    {
+        "umidita": 58.7,
+        "id": 3,
+        "temperatura": 21.9,
+        "timestamp": "2025-06-22 10:56:09.284"
+    },
+    {
+        "umidita": 62.1,
+        "id": 4,
+        "temperatura": 24,
+        "timestamp": "2025-06-22 10:56:14.287"
+    },
+    {
+        "umidita": 64,
+        "id": 5,
+        "temperatura": 25.3,
+        "timestamp": "2025-06-22 10:56:19.304"
+    },
+    {
+        "umidita": 61.9,
+        "id": 6,
+        "temperatura": 23.7,
+        "timestamp": "2025-06-22 10:56:24.32"
+    },
+    {
+        "umidita": 60.2,
+        "id": 7,
+        "temperatura": 22.5,
+        "timestamp": "2025-06-23 14:06:07.104"
+    },
+    {
+        "umidita": 59.8,
+        "id": 8,
+        "temperatura": 23.1,
+        "timestamp": "2025-06-23 14:06:12.137"
+    },
+    {
+        "umidita": 58.7,
+        "id": 9,
+        "temperatura": 21.9,
+        "timestamp": "2025-06-23 14:06:17.152"
+    },
+    {
+        "umidita": 62.1,
+        "id": 10,
+        "temperatura": 24,
+        "timestamp": "2025-06-23 14:06:22.157"
+    },
+    {
+        "umidita": 64,
+        "id": 11,
+        "temperatura": 25.3,
+        "timestamp": "2025-06-23 14:06:27.17"
+    },
+    {
+        "umidita": 61.9,
+        "id": 12,
+        "temperatura": 23.7,
+        "timestamp": "2025-06-23 14:06:32.174"
+    },
+    {
+        "umidita": 60.2,
+        "id": 13,
+        "temperatura": 22.5,
+        "timestamp": "2025-06-24 14:54:17.76"
+    },
+    {
+        "umidita": 59.8,
+        "id": 14,
+        "temperatura": 23.1,
+        "timestamp": "2025-06-24 14:54:22.794"
+    },
+    {
+        "umidita": 58.7,
+        "id": 15,
+        "temperatura": 21.9,
+        "timestamp": "2025-06-24 14:54:27.813"
+    },
+    {
+        "umidita": 62.1,
+        "id": 16,
+        "temperatura": 24,
+        "timestamp": "2025-06-24 14:54:32.818"
+    },
+    {
+        "umidita": 64,
+        "id": 17,
+        "temperatura": 25.3,
+        "timestamp": "2025-06-24 14:54:37.827"
+    },
+    {
+        "umidita": 61.9,
+        "id": 18,
+        "temperatura": 23.7,
+        "timestamp": "2025-06-24 14:54:42.841"
+    }
+]
