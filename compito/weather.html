@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TerraVerde - Meteo</title>
+    <style>
+        /* Stili ripresi e adattati dal tuo tema agricolo */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            background-color: #f0f4f0;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header (copia quello della dashboard per coerenza) */
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-left a {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2em;
+            text-decoration: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            transition: background-color 0.2s ease;
+            display: flex;
+            align-items: center;
+        }
+        .header-left a:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+        .header-left .arrow-icon {
+            font-size: 1.5em;
+            margin-right: 5px;
+        }
+
+        .header-title {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+
+        /* Contenuto Principale */
+        main {
+            flex-grow: 1;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .weather-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 800px;
+            max-width: 95%;
+            text-align: center;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h2 {
+            color: #2e7d32;
+            margin-bottom: 25px;
+            font-size: 2em;
+            font-weight: 600;
+        }
+
+        p {
+            margin-bottom: 20px;
+            font-size: 1.1em;
+            color: #555;
+        }
+
+        .location-input-group {
+            display: flex;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 400px;
+        }
+        .location-input-group input {
+            flex-grow: 1;
+            padding: 10px 15px;
+            border: 1px solid #b2dfdb;
+            border-radius: 6px 0 0 6px; /* Bordo arrotondato a sinistra */
+            font-size: 1em;
+            color: #555;
+        }
+        .location-input-group button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 0 6px 6px 0; /* Bordo arrotondato a destra */
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.2s ease;
+        }
+        .location-input-group button:hover {
+            background-color: #43A047;
+        }
+
+
+        iframe {
+            width: 100%;
+            height: 500px; /* Altezza fissa per l'iframe del meteo */
+            border: 1px solid #b2dfdb;
+            border-radius: 8px;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.05);
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app">
+        <header>
+            <div class="header-left">
+                <a href="dashboard.html" class="header-button">
+                    <span class="arrow-icon">←</span> Indietro
+                </a>
+            </div>
+            <div class="header-title">
+                Meteo TerraVerde
+            </div>
+            <div class="header-right">
+                </div>
+        </header>
+
+        <main>
+            <div class="weather-container">
+                <h2>Condizioni Meteo</h2>
+                <p>Inserisci una località per visualizzare il meteo.</p>
+
+                <div class="location-input-group">
+                    <input type="text" v-model="location" @keyup.enter="updateWeather" placeholder="Es. Taranto, Italia">
+                    <button @click="updateWeather">Cerca</button>
+                </div>
+
+                <iframe :src="weatherUrl" frameborder="0" allowfullscreen></iframe>
+
+                <p style="margin-top: 30px; font-size: 0.9em; color: #777;">
+                    Questo meteo è fornito da una ricerca Google simulata.
+                    Per dati meteo in tempo reale e API complete, consigliamo servizi dedicati.
+                </p>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    location: 'Taranto, Italia', // Località predefinita
+                    // La URL di Google Search per il meteo
+                    googleWeatherBaseUrl: 'https://www.google.com/search?igu=1&q=meteo+', // igu=1 per layout compatto
+                };
+            },
+            computed: {
+                weatherUrl() {
+                    // Costruisce l'URL completo per la ricerca meteo
+                    return `${this.googleWeatherBaseUrl}${encodeURIComponent(this.location)}`;
+                }
+            },
+            methods: {
+                updateWeather() {
+                    // Non serve fare nulla qui, il computed property `weatherUrl` si aggiorna automaticamente
+                    // ogni volta che `this.location` cambia.
+                    // Questo metodo è qui principalmente per essere collegato al bottone "Cerca" e al tasto invio
+                    console.log('Aggiornando meteo per:', this.location);
+                }
+            },
+            mounted() {
+                // Puoi anche tentare di ottenere la posizione corrente dell'utente
+                // ma richiede permesso del browser e gestione degli errori.
+                // Per ora manteniamo la località predefinita.
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(position => {
+                        // Potresti usare un servizio di geocoding inverso qui per ottenere il nome della città
+                        // Per semplicità, non lo faremo in questo esempio.
+                        // console.log('Latitudine:', position.coords.latitude, 'Longitudine:', position.coords.longitude);
+                    }, error => {
+                        console.error('Errore nel recupero della posizione:', error);
+                    });
+                }
+            }
+        }).mount('#app');
+    </script>
+
+</body>
+</html>

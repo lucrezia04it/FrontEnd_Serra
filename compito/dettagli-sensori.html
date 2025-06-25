@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dettagli Sensori</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            background-color: #f0f4f0;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        .header-title {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: white;
+        }
+        main {
+            flex-grow: 1;
+            padding: 30px;
+            max-width: 960px;
+            margin: 20px auto;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #2e7d32;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .back-button {
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            margin-bottom: 20px;
+            transition: background-color 0.2s ease;
+        }
+        .back-button:hover {
+            background-color: #0056b3;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            color: #333;
+        }
+        .grafana-embed {
+            width: 100%;
+            height: 600px;
+            border: none;
+            border-radius: 8px;
+            margin-top: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .loading {
+            text-align: center;
+            font-size: 1.5em;
+            color: #555;
+            margin-top: 50px;
+        }
+        .error-message {
+            color: #d32f2f;
+            background-color: #ffebee;
+            border: 1px solid #ef9a9a;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="app-details">
+        <header>
+            <div class="header-title">Dettagli Sensore: {{ sensorTypeDisplay }}</div>
+        </header>
+
+        <main>
+            <a href="dashboard.html" class="back-button">← Torna alla Dashboard</a>
+
+            <h1>Dati Dettagliati {{ sensorTypeDisplay }}</h1>
+
+            <div v-if="sensorType === 'temperature'">
+                <h3>Grafico Storico Temperatura</h3>
+                <iframe src="https://snapshots.raintank.io/dashboard/snapshot/ajUqUq6G0mq0IaxiAjaqShylFcqkkxGy?orgId=1&var-data=temperatura" class="grafana-embed" frameborder="0"></iframe>
+            </div>
+            <div v-else-if="sensorType === 'humidity'">
+                <h3>Grafico Storico Umidità</h3>
+                <iframe src="https://snapshots.raintank.io/dashboard/snapshot/ajUqUq6G0mq0IaxiAjaqShylFcqkkxGy?orgId=1&var-data=umidita" class="grafana-embed" frameborder="0"></iframe>
+            </div>
+            <p v-else>Seleziona un tipo di sensore dalla dashboard per visualizzare i dettagli.</p>
+
+            <h3>Tabella Dati Grezzi</h3>
+            <p v-if="loading" class="loading">Caricamento dati...</p>
+            <p v-if="error" class="error-message">Errore nel caricamento dei dati: {{ error }}</p>
+
+            <table v-if="!loading && !error && allSensorData.length > 0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Temperatura (°C)</th>
+                        <th>Umidità (%)</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="reading in allSensorData" :key="reading.id">
+                        <td>{{ reading.id }}</td>
+                        <td>{{ reading.temperatura.toFixed(2) }}</td>
+                        <td>{{ reading.umidita.toFixed(2) }}</td>
+                        <td>{{ reading.timestamp }}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p v-else-if="!loading && !error && allSensorData.length === 0">Nessun dato disponibile.</p>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    sensorType: '',
+                    allSensorData: [],
+                    loading: true,
+                    error: null,
+                    pollingInterval: null, // Per memorizzare l'ID del timer di polling
+                };
+            },
+            computed: {
+                sensorTypeDisplay() {
+                    return this.sensorType === 'temperature' ? 'Temperatura' :
+                           this.sensorType === 'humidity' ? 'Umidità' : 'Generale';
+                }
+            },
+            methods: {
+                parseUrlParams() {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    this.sensorType = urlParams.get('type') || '';
+                },
+                async fetchSensorData() { // Questa è la funzione in questione!
+                    this.loading = true;
+                    this.error = null;
+                    // Non pulire allSensorData qui se vuoi mantenere i vecchi dati finché non arrivano i nuovi
+                    // this.allSensorData = []; 
+
+                    // Assicurati che questa URL sia corretta per il tuo backend Java
+                    // Se Spring Boot è sulla porta 8080 e sull'IP del server:
+                    let apiUrl = 'http://192.168.6.233:8080/api/sensor_readings';
+
+                    try {
+                        // *** Qui usiamo Axios invece di fetch ***
+                        const response = await axios.get(apiUrl);
+                        this.allSensorData = response.data; // Axios mette i dati JSON parsati in `response.data`
+                    } catch (e) {
+                        console.error("Errore nel recupero dei dati del sensore:", e);
+                        if (e.response) {
+                            // Errore ricevuto dal server (es. 404, 500)
+                            this.error = `Errore dal server: ${e.response.status} - ${e.response.statusText || e.message}. Dettagli: ${JSON.stringify(e.response.data)}`;
+                        } else if (e.request) {
+                            // La richiesta è stata inviata ma nessuna risposta ricevuta (es. server non raggiungibile)
+                            this.error = "Nessuna risposta dal server. Controlla la connessione o l'indirizzo del backend.";
+                        } else {
+                            // Qualcosa è andato storto nella configurazione della richiesta
+                            this.error = `Errore durante la richiesta: ${e.message}`;
+                        }
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                // *** Nuovi metodi per gestire il polling ***
+                startPolling() {
+                    // Pulisce qualsiasi timer esistente per evitare di avviare più polling
+                    if (this.pollingInterval) {
+                        clearInterval(this.pollingInterval);
+                    }
+                    // Avvia un nuovo timer che chiama fetchSensorData ogni 5 secondi (5000 millisecondi)
+                    this.pollingInterval = setInterval(this.fetchSensorData, 5000); 
+                    console.log("Polling avviato.");
+                },
+                stopPolling() {
+                    // Ferma il timer di polling se è attivo
+                    if (this.pollingInterval) {
+                        clearInterval(this.pollingInterval);
+                        this.pollingInterval = null;
+                        console.log("Polling fermato.");
+                    }
+                }
+            },
+            mounted() {
+                // `mounted` viene chiamato una volta che il componente Vue è stato montato nel DOM.
+                this.parseUrlParams();    // Parsa i parametri URL per sapere quale tipo di sensore mostrare.
+                this.fetchSensorData();   // Esegue subito la prima chiamata per ottenere i dati.
+                this.startPolling();      // Avvia il polling periodico.
+            },
+            beforeUnmount() { 
+                // `beforeUnmount` (per Vue 3) viene chiamato prima che il componente venga rimosso dal DOM.
+                // È fondamentale fermare il polling qui per evitare memory leaks e chiamate API inutili.
+                this.stopPolling();
+            }
+            // Se stai usando Vue 2, useresti `beforeDestroy()` invece di `beforeUnmount()`:
+            // beforeDestroy() {
+            //     this.stopPolling();
+            // }
+        }).mount('#app-details');
+    </script>
+</body>
+</html>
